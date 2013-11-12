@@ -1,27 +1,19 @@
 -module(evil_censor).
 
 -export([text/1
-	]).
+        ]).
 
 
-
--define(WORD_BLACKLIST, ["nice", "pony", "sun", "happy", "friendly"]).
+-define(WORD_REPLACEMENT, [{"bad", "ungood"},
+                           {"better", "gooder"},
+                           {"objection","thoughtcrime"},
+                           {"Objection","Thoughtcrime"},
+                           {"agree","crimestop"}]).
 
 
 text(Sentence) ->
-    Tokens = string:tokens(Sentence, " "),
-    CensoredTokens = lists:foldr(fun replace_word_in_string/2,	       
-				 Tokens, ?WORD_BLACKLIST),
-    string:join(CensoredTokens, " ").
-
-
-replace_word_in_string(BlacklistWord, Tokens) ->
-    lists:map(fun(Token) ->
-		      case re:run(Token, BlacklistWord, [{capture,none}]) of
-			  match -> 
-			      lists:duplicate(length(Token), $X);
-			  nomatch ->
-			      Token
-		      end
-	      end,
-	      Tokens).
+    lists:foldr(fun({SearchedToken, Replacement},AccIn) ->
+                        re:replace(AccIn,SearchedToken, Replacement, [{return,list}])
+                end,
+                Sentence, 
+                ?WORD_REPLACEMENT).
